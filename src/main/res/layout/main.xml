@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              >
+
+  <me.krrr.wallpaper.GradientView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:id="@+id/gra_view"
+          android:layout_alignParentTop="true"
+          />
+  <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:id="@+id/gra_name"
+          android:text="NAME"
+          android:layout_centerVertical="true" android:layout_centerHorizontal="true" android:singleLine="true"
+          android:paddingLeft="3dip"
+          android:paddingRight="3dip" android:selectAllOnFocus="false" android:focusableInTouchMode="true"/>
+  <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textAppearance="?android:attr/textAppearanceSmall"
+          android:id="@+id/gra_subname"
+          android:text="SUBNAME" android:layout_below="@+id/gra_name" android:layout_centerHorizontal="true"
+          android:layout_marginTop="-5dip" android:singleLine="true" android:paddingLeft="3dip"
+          android:paddingRight="3dip"/>
+</RelativeLayout>

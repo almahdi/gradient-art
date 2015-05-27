@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="me.krrr.wallpaper"
+    android:versionCode="0"
+    android:versionName="0.1">
+
+    <uses-sdk
+        android:minSdkVersion="9"
+        android:targetSdkVersion="22"/>
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/android:star_big_on"
+        android:allowBackup="false">
+
+        <activity
+          android:label="@string/app_name"
+          android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>
