@@ -6,14 +6,14 @@ import android.graphics.drawable.GradientDrawable
 import scala.util.Random
 
 
-class MyGradientDrawable {
+class GradientArtDrawable {
     // GradientView.scala simple Drawable that only support draw method
     private var gd = new GradientDrawable(
         GradientDrawable.Orientation.TOP_BOTTOM,
         Array(0xFFE6DADA, 0xFF274046))  // named "Metal", for default
     private var _degree = 30f
 
-    import MyGradientDrawable.Filter._
+    import GradientArtDrawable.Filter._
     var filter = NO_FILTER
 
     def degree = _degree
@@ -39,7 +39,6 @@ class MyGradientDrawable {
     }
 
     private def drawRotateGra(canvas: Canvas) {
-        // canvas.getWidth and this.getWidth differs on Android ver2.3 and ver4.3
         val (w, h) = (canvas.getWidth, canvas.getHeight)
         val _deg = _degree / 180.0 * math.Pi
         val (deg_sin, deg_cos) = (math.sin(_deg), math.cos(_deg))
@@ -68,7 +67,7 @@ class MyGradientDrawable {
                 Bitmap.Config.ARGB_8888)
             val c = new Canvas(bmp)
             // use path to draw parallelogram, light part first.
-            // there should be GradientView.scala simpler way to do this...
+            // there should be simpler way to do this...
             paint.setARGB(30, 255, 255, 255)
             path.moveTo(0, 0)
             path.lineTo(block_w, 0)
@@ -122,7 +121,7 @@ class MyGradientDrawable {
 }
 
 
-object MyGradientDrawable {
+object GradientArtDrawable {
     object Filter extends Enumeration {
         val NO_FILTER, TAQUIN = Value
     }

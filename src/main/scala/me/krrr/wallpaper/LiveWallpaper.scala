@@ -11,7 +11,7 @@ import android.view.View.MeasureSpec
 import android.view.{WindowManager, LayoutInflater, SurfaceHolder}
 import android.widget.TextView
 import org.json.{JSONArray, JSONException}
-import MyGradientDrawable.Filter
+import GradientArtDrawable.Filter
 
 import scala.util.Random
 

@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 
 class GradientArtView(ctx: Context, attrs: AttributeSet) extends View(ctx, attrs) {
-    val gra = new MyGradientDrawable
+    val gra = new GradientArtDrawable
 
     override def onDraw(canvas: Canvas) = gra.draw(canvas)
 }
