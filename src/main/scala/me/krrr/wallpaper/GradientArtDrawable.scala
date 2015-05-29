@@ -27,13 +27,12 @@ class GradientArtDrawable {
         canvas.save()
         filter match {
             case NO_FILTER => drawRotateGra(canvas)
-            case TAQUIN => {
+            case TAQUIN =>
                 val bmp = Bitmap.createBitmap(canvas.getWidth,
                     canvas.getHeight, Bitmap.Config.ARGB_8888)
                 val mid = new Canvas(bmp)
                 drawRotateGra(mid)
                 taquin(bmp, canvas)
-            }
         }
         canvas.restore()
     }
@@ -45,9 +44,9 @@ class GradientArtDrawable {
         val new_w = deg_sin * h + deg_cos * w
         val new_h = deg_cos * h + deg_sin * w
 
-        canvas.translate(-(deg_sin * deg_cos * h).toFloat,
-                         (math.pow(deg_sin, 2) * h).toFloat)
-        canvas.rotate(-_degree)
+        canvas.translate((deg_sin * deg_sin * w).toFloat,
+                         -(deg_sin * deg_cos * w).toFloat)
+        canvas.rotate(_degree)
         gd.setBounds(0, 0, new_w.toInt, new_h.toInt)
         gd.draw(canvas)
     }
@@ -57,7 +56,6 @@ class GradientArtDrawable {
         val (block_w, block_h) = (src.getWidth.toFloat / n, src.getHeight.toFloat / n)
         val random = new Random
         val paint = new Paint
-        val path = new Path
         val (src_rect, dst_rect) = (new Rect, new Rect)
         val border_rect = new Rect(0, 0, block_w.toInt, block_h.toInt)
         val border_w = Array(block_w, block_h).min * 0.04f
@@ -69,7 +67,7 @@ class GradientArtDrawable {
             // use path to draw parallelogram, light part first.
             // there should be simpler way to do this...
             paint.setARGB(30, 255, 255, 255)
-            path.moveTo(0, 0)
+            val path = new Path
             path.lineTo(block_w, 0)
             path.lineTo(block_w, block_h*0.7f)
             path.lineTo(block_w-border_w, block_h*0.7f-border_w)
@@ -80,7 +78,6 @@ class GradientArtDrawable {
             path.reset()
             // dark part
             paint.setARGB(30, 0, 0, 0)
-            path.moveTo(0, 0)
             path.lineTo(0, block_h)
             path.lineTo(block_w, block_h)
             path.lineTo(block_w, block_h*0.7f)
