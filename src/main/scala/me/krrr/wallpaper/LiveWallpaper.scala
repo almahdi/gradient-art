@@ -1,6 +1,7 @@
 package me.krrr.wallpaper
 
-import android.content.Context
+import android.content.{SharedPreferences, Context}
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.preference.PreferenceManager
@@ -17,9 +18,10 @@ import scala.util.Random
 class LiveWallpaper extends WallpaperService {
     private val handler = new Handler
 
-    def onCreateEngine() = new MyGraEngine
+    def onCreateEngine() = new GraEngine
 
-    class MyGraEngine extends Engine {
+    class GraEngine extends Engine with OnSharedPreferenceChangeListener {
+        private val pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext)
         private var drawTask: Runnable = null
         private val (view, nameLabel, subLabel) = {  // inflate view and set text shadows
             val view = LayoutInflater.from(
@@ -39,17 +41,17 @@ class LiveWallpaper extends WallpaperService {
         }
         private var period = 0  // millisecond
 
-        fromSettings()
-
         override def onSurfaceCreated(holder: SurfaceHolder) {
             holder.setFormat(PixelFormat.RGBA_8888)
+            fromSettings()
+            pref.registerOnSharedPreferenceChangeListener(this)
         }
 
         override def onSurfaceChanged(holder: SurfaceHolder, format: Int,
                                       width: Int, height: Int) = layoutView(width, height)
 
-        override def onDestroy() {
-            super.onDestroy()
+        override def onSurfaceDestroyed(holder: SurfaceHolder) {
+            pref.unregisterOnSharedPreferenceChangeListener(this)
             handler.removeCallbacks(drawTask)
         }
 
@@ -79,7 +81,6 @@ class LiveWallpaper extends WallpaperService {
         }
 
         def fromSettings() = {
-            val pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext)
             val graView = view.findViewById(R.id.gra_view).asInstanceOf[GradientArtView]
             val filterIdx = pref.getString("filter", "0").toInt
             val randomFilterEnabled = filterIdx == -1
@@ -126,5 +127,7 @@ class LiveWallpaper extends WallpaperService {
                 }
             }
         }
+
+        def onSharedPreferenceChanged(pref: SharedPreferences, key: String) = fromSettings()
     }
 }
