@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Gradient Art</string>
+  <string name="app_desc">Gradient meets filters</string>
 
   <string name="settings_title">Gradient Art Settings</string>
   <string name="pref_pattern_set">Pattern set</string>

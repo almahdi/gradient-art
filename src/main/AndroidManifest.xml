@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="me.krrr.wallpaper"
           android:versionCode="0"
@@ -11,19 +12,20 @@
   <application
           android:label="@string/app_name"
           android:icon="@drawable/android:star_big_on"
-          android:allowBackup="false"
-          android:permission="android.permission.BIND_WALLPAPER">
+          android:allowBackup="true">
 
     <service android:name=".LiveWallpaper"
-             android:label="@string/app_name">
+             android:label="@string/app_name"
+             android:permission="android.permission.BIND_WALLPAPER">
       <intent-filter>
-        <action android:name="android.service.wallpaper.WallpaperService" />
+        <action android:name="android.service.wallpaper.WallpaperService"/>
       </intent-filter>
       <meta-data android:name="android.service.wallpaper"
-                 android:resource="@xml/live_wallpaper" />
+                 android:resource="@xml/live_wallpaper"/>
     </service>
 
-    <activity android:name=".Preference" android:label="@string/settings_title"
+    <activity android:name=".Preference"
+              android:label="@string/settings_title"
               android:exported="true">
     </activity>
 
