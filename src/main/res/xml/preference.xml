@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:title="@string/settings_title"
+                  android:key="settings" android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+
+  <me.krrr.androidhelper.ListPreferenceCompat
+          android:key="pattern_set"
+          android:title="@string/pref_pattern_set"
+          android:summary="%s"
+          android:entries="@array/pattern_set_names"
+          android:entryValues="@array/pattern_set_values"
+          android:defaultValue="0"/>
+  <me.krrr.androidhelper.ListPreferenceCompat
+          android:key="filter"
+          android:title="@string/pref_filter"
+          android:summary="%s"
+          android:entries="@array/filter_names"
+          android:entryValues="@array/filter_indexes"
+          android:defaultValue="0"/>
+  <me.krrr.androidhelper.ListPreferenceCompat
+          android:key="period"
+          android:title="@string/pref_period"
+          android:summary="@string/pref_period_sum"
+          android:entries="@array/period_names"
+          android:entryValues="@array/period_values"
+          android:defaultValue="1800000"/>
+  <CheckBoxPreference
+          android:key="show_name"
+          android:title="@string/pref_show_name"
+          android:defaultValue="true"/>
+</PreferenceScreen>

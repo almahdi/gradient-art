@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="filter_names">
+    <item>None</item>
+    <item>None or random one</item>
+    <item>Taquin</item>
+  </string-array>
+  <string-array name="filter_indexes">
+    <item>0</item>
+    <item>-1</item>
+    <item>1</item>
+  </string-array>
+
+  <string-array name="period_names">
+    <item>1 min</item>
+    <item>3 min</item>
+    <item>10 min</item>
+    <item>30 min</item>
+    <item>1 hour</item>
+    <item>3 hours</item>
+    <item>12 hours</item>
+    <item>1 day</item>
+  </string-array>
+  <string-array name="period_values">
+    <!-- milliseconds -->
+    <item>60000</item>
+    <item>180000</item>
+    <item>600000</item>
+    <item>1800000</item>
+    <item>3600000</item>
+    <item>10800000</item>
+    <item>43200000</item>
+    <item>86400000</item>
+  </string-array>
+
+  <string-array name="pattern_set_names">
+    <item>uiGradient</item>
+  </string-array>
+  <string-array name="pattern_set_values">
+    <item>0</item>
+  </string-array>
+</resources>

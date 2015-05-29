@@ -1,46 +1,46 @@
 package me.krrr.wallpaper
 
-import android.content.Context
 import android.graphics._
 import android.graphics.drawable.GradientDrawable
-import android.util.AttributeSet
-import android.view.View
-import android.widget.Toast
 
 import scala.util.Random
 
 
-class GradientView(ctx: Context, attrs: AttributeSet) extends View(ctx, attrs) {
+class MyGradientDrawable {
+    // GradientView.scala simple Drawable that only support draw method
     private var gd = new GradientDrawable(
         GradientDrawable.Orientation.TOP_BOTTOM,
-        Array(0xFFE6DADA, 0xFF274046))  // named "Metal", only for preview
+        Array(0xFFE6DADA, 0xFF274046))  // named "Metal", for default
     private var _degree = 30f
 
-    import GradientView.Filter._
-    var filter = TAQUIN
+    import MyGradientDrawable.Filter._
+    var filter = NO_FILTER
 
     def degree = _degree
-    def degree_=(deg: Float): Unit =
+    def degree_=(deg: Float) =
         if (0 <= deg && deg <= 90)
             _degree = deg
         else
             throw new Exception("Invalid degree")
 
-    override def onDraw(canvas: Canvas): Unit =
+    def draw(canvas: Canvas) = {
+        canvas.save()
         filter match {
-            case NO_FILTER => onDrawRotateGra(canvas)
+            case NO_FILTER => drawRotateGra(canvas)
             case TAQUIN => {
-                val bmp = Bitmap.createBitmap(getWidth,
-                    getHeight, Bitmap.Config.ARGB_8888)
+                val bmp = Bitmap.createBitmap(canvas.getWidth,
+                    canvas.getHeight, Bitmap.Config.ARGB_8888)
                 val mid = new Canvas(bmp)
-                onDrawRotateGra(mid)
+                drawRotateGra(mid)
                 taquin(bmp, canvas)
             }
         }
+        canvas.restore()
+    }
 
-    def onDrawRotateGra(canvas: Canvas): Unit = {
+    private def drawRotateGra(canvas: Canvas) {
         // canvas.getWidth and this.getWidth differs on Android ver2.3 and ver4.3
-        val (w, h) = (getWidth, getHeight)
+        val (w, h) = (canvas.getWidth, canvas.getHeight)
         val _deg = _degree / 180.0 * math.Pi
         val (deg_sin, deg_cos) = (math.sin(_deg), math.cos(_deg))
         val new_w = deg_sin * h + deg_cos * w
@@ -53,7 +53,7 @@ class GradientView(ctx: Context, attrs: AttributeSet) extends View(ctx, attrs) {
         gd.draw(canvas)
     }
 
-    private def taquin(src: Bitmap, dst: Canvas): Unit = {
+    private def taquin(src: Bitmap, dst: Canvas) = {
         val n = 7
         val (block_w, block_h) = (src.getWidth.toFloat / n, src.getHeight.toFloat / n)
         val random = new Random
@@ -68,7 +68,7 @@ class GradientView(ctx: Context, attrs: AttributeSet) extends View(ctx, attrs) {
                 Bitmap.Config.ARGB_8888)
             val c = new Canvas(bmp)
             // use path to draw parallelogram, light part first.
-            // there should be a simpler way to do this...
+            // there should be GradientView.scala simpler way to do this...
             paint.setARGB(30, 255, 255, 255)
             path.moveTo(0, 0)
             path.lineTo(block_w, 0)
@@ -112,9 +112,9 @@ class GradientView(ctx: Context, attrs: AttributeSet) extends View(ctx, attrs) {
         // eg. convert "#FFCCFF" to 0xFFFFCCFF (argb)
         Integer.parseInt(s.drop(1), 16) + 0xFF000000
 
-    def setColor(color: String): Unit = gd.setColor(colorStrToInt(color))
+    def setColor(color: String) = gd.setColor(colorStrToInt(color))
 
-    def setColors(colors: Array[String]): Unit = {
+    def setColors(colors: Array[String]) = {
         gd = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             colors.map(colorStrToInt))
@@ -122,7 +122,7 @@ class GradientView(ctx: Context, attrs: AttributeSet) extends View(ctx, attrs) {
 }
 
 
-object GradientView {
+object MyGradientDrawable {
     object Filter extends Enumeration {
         val NO_FILTER, TAQUIN = Value
     }

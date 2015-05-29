@@ -88,6 +88,8 @@
     public java.lang.String toString();
 }
 
+-keepattributes Signature
+
 -keepclassmembernames class scala.concurrent.forkjoin.ForkJoinPool {
     long eventCount;
     int  workerCounts;
@@ -117,8 +119,6 @@
 # view res/layout/main.xml #generated:8
 -keep class me.krrr.wallpaper.GradientView { <init>(...); }
 
-# view AndroidManifest.xml #generated:7
--keep class me.krrr.wallpaper.MainActivity { <init>(...); }
 
 -ignorewarnings
 -keep class scala.Dynamic

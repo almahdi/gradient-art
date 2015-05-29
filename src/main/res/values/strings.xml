@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="app_name">Wallpaper Test</string>
+  <string name="app_name">Gradient Art</string>
+
+  <string name="settings_title">Gradient Art Settings</string>
+  <string name="pref_pattern_set">Pattern set</string>
+  <string name="pref_filter">Filter</string>
+  <string name="pref_period">Period to keep</string>
+  <string name="pref_period_sum">Keep the color for %s before random change</string>
+  <string name="pref_show_name">Show pattern\'s name</string>
 </resources>

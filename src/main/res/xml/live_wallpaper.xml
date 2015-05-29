@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
+           android:settingsActivity="me.krrr.wallpaper.Preference"
+           android:thumbnail="@drawable/android:star_big_on"/>
