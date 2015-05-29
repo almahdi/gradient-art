@@ -54,7 +54,6 @@ class GradientArtDrawable {
     private def taquin(src: Bitmap, dst: Canvas) = {
         val n = 7
         val (block_w, block_h) = (src.getWidth.toFloat / n, src.getHeight.toFloat / n)
-        val random = new Random
         val paint = new Paint
         val (src_rect, dst_rect) = (new Rect, new Rect)
         val border_rect = new Rect(0, 0, block_w.toInt, block_h.toInt)
@@ -93,7 +92,7 @@ class GradientArtDrawable {
 
         for (dst_i <- 0 until n * n) {
             // copy block
-            val src_i = random.nextInt(n * n)  // random from [0, n**2]
+            val src_i = Random.nextInt(n * n)  // random from [0, n**2]
             val (src_x, src_y) = ((src_i % n) * block_w, src_i / n * block_h)
             val (dst_x, dst_y) = ((dst_i % n) * block_w, dst_i / n * block_h)
             src_rect.set(src_x.toInt, src_y.toInt, (src_x+block_w).toInt, (src_y+block_h).toInt)
