@@ -73,6 +73,7 @@ class LiveWallpaper extends WallpaperService {
         override def onSurfaceChanged(holder: SurfaceHolder, format: Int,
                                       width: Int, height: Int) {
             layoutView(width, height)
+            doDrawing()
         }
 
         override def onSurfaceDestroyed(holder: SurfaceHolder) {
