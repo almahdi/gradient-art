@@ -2,7 +2,8 @@ package me.krrr.wallpaper
 
 import android.content.{SharedPreferences, Context}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import android.graphics.PixelFormat
+import android.graphics.drawable.{BitmapDrawable, TransitionDrawable}
+import android.graphics.{Canvas, Bitmap, PixelFormat}
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.service.wallpaper.WallpaperService
@@ -23,16 +24,15 @@ class LiveWallpaper extends WallpaperService {
     def onCreateEngine() = new GraEngine
 
     class GraEngine extends Engine with OnSharedPreferenceChangeListener {
+        val aniDuration = 1000
         private val pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext)
         private var hasDelayedChange = false
         private val changeTask = new Runnable {
             def run() = {
-                if (isVisible) {
-                    fromSettings()
-                    doDrawing()
-                } else {
+                if (isVisible)
+                    doDrawingAnimated()
+                else
                     hasDelayedChange = true
-                }
                 schedule()
             }
 
@@ -84,8 +84,7 @@ class LiveWallpaper extends WallpaperService {
 
         override def onVisibilityChanged(visible: Boolean) {
             if (visible && hasDelayedChange) {
-                fromSettings()
-                doDrawing()
+                doDrawingAnimated()
                 hasDelayedChange = false
             }
         }
@@ -94,6 +93,43 @@ class LiveWallpaper extends WallpaperService {
             view.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
             view.layout(0, 0, w, h)
+        }
+
+        // no need to call fromSettings before call this
+        def doDrawingAnimated() {
+            val (w, h) = (view.getWidth, view.getHeight)
+            val before = Bitmap.createBitmap( w,h, Bitmap.Config.ARGB_8888)
+            val after = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            view.draw(new Canvas(before))
+            fromSettings()
+            view.draw(new Canvas(after))
+            val a = new BitmapDrawable(getResources, before)
+            val b = new BitmapDrawable(getResources, after)
+            val td = new TransitionDrawable(Array(a, b))
+            Array(a, b, td).foreach(_.setBounds(0, 0, w, h))
+            td.startTransition(aniDuration)
+
+            val job = new Runnable {
+                def run() {
+                    val holder = getSurfaceHolder
+                    val canvas = holder.lockCanvas()
+                    if (canvas != null) {
+                        td.draw(canvas)
+                        holder.unlockCanvasAndPost(canvas)
+                    }
+                    handler.postDelayed(this, 17)  // 60FPS
+                }
+            }
+            handler.postDelayed(new Runnable {
+                def run() { handler.removeCallbacks(job) }
+            }, aniDuration + 30)
+            handler.postDelayed(new Runnable {
+                def run() {
+                    Array(before, after).foreach(_.recycle())
+                    System.gc()
+                }
+            }, aniDuration + 50)
+            job.run()
         }
 
         // Only called after this engine created or settings
