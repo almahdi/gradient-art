@@ -132,8 +132,7 @@ class LiveWallpaper extends WallpaperService {
             job.run()
         }
 
-        // Only called after this engine created or settings
-        // changed or called by changeTask repeatedly.
+        // Only called after this engine created
         def doDrawing() {
             val holder = getSurfaceHolder
             val canvas = holder.lockCanvas()
@@ -143,6 +142,7 @@ class LiveWallpaper extends WallpaperService {
             }
         }
 
+        // Select a color randomly and set gradientDrawable and TextViews
         def fromSettings() = {
             val idx = pref.getString("filter", "0").toInt
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
