@@ -14,6 +14,7 @@ import org.json.{JSONArray, JSONException}
 import GradientArtDrawable.Filter
 
 import scala.util.Random
+import scala.language.reflectiveCalls
 
 
 class LiveWallpaper extends WallpaperService {
@@ -23,17 +24,19 @@ class LiveWallpaper extends WallpaperService {
 
     class GraEngine extends Engine with OnSharedPreferenceChangeListener {
         private val pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext)
-        private var changeTaskDelayed = false
+        private var hasDelayedChange = false
         private val changeTask = new Runnable {
             def run() = {
                 if (isVisible) {
                     fromSettings()
                     doDrawing()
                 } else {
-                    changeTaskDelayed = true
+                    hasDelayedChange = true
                 }
-                handler.postDelayed(this, pref.getString("period", "1800000").toInt)
+                schedule()
             }
+
+            def schedule() = handler.postDelayed(this, pref.getString("period", "1800000").toInt)
         }
         private val (view, nameLabel, subLabel, gra) = {
             // inflate view and set text shadows
@@ -56,18 +59,16 @@ class LiveWallpaper extends WallpaperService {
         val patterns = {
             val i_stream = getResources.openRawResource(R.raw.uigradients)
             val json_s = io.Source.fromInputStream(i_stream).mkString
-            try new JSONArray(json_s) catch {
-                case e: JSONException => null
-            }
+            try new JSONArray(json_s) catch { case e: JSONException => null }
         }
 
         override def onSurfaceCreated(holder: SurfaceHolder) {
             holder.setFormat(PixelFormat.RGBA_8888)
-            fromSettings()
             pref.registerOnSharedPreferenceChangeListener(this)
             // for some unknown reasons, onVisibilityChanged will be called three
             // times initially: show, hide, show. This is a workaround.
-            handler.postDelayed(changeTask, 500)
+            fromSettings()
+            changeTask.schedule()
         }
 
         override def onSurfaceChanged(holder: SurfaceHolder, format: Int,
@@ -82,10 +83,10 @@ class LiveWallpaper extends WallpaperService {
         }
 
         override def onVisibilityChanged(visible: Boolean) {
-            if (visible && changeTaskDelayed) {
+            if (visible && hasDelayedChange) {
                 fromSettings()
                 doDrawing()
-                changeTaskDelayed = false
+                hasDelayedChange = false
             }
         }
 
@@ -110,7 +111,6 @@ class LiveWallpaper extends WallpaperService {
             val idx = pref.getString("filter", "0").toInt
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
 
-            var (name, subName) = ("", "")
             try {
                 val entry = patterns.getJSONObject(Random.nextInt(patterns.length))
                 if (entry.has("color"))
@@ -118,10 +118,11 @@ class LiveWallpaper extends WallpaperService {
                 else
                     gra.setColors(Array("color1", "color2").map(entry.getString))
 
+                var (name, subName) = ("", "")
                 if (pref.getBoolean("show_name", true)) {
                     name = entry.getString("name")
                     subName = if (entry.has("sub_name")) entry.getString("sub_name") else ""
-                }  // else, set there name to empty
+                }
                 nameLabel.setText(name)
                 subLabel.setText(subName)
             } catch {
@@ -133,8 +134,7 @@ class LiveWallpaper extends WallpaperService {
         }
 
         def onSharedPreferenceChanged(pref: SharedPreferences, key: String) {
-            fromSettings()
-            doDrawing()
+            hasDelayedChange = true
         }
     }
 
