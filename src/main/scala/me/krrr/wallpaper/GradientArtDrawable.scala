@@ -7,34 +7,54 @@ import scala.util.Random
 
 
 class GradientArtDrawable {
-    // GradientView.scala simple Drawable that only support draw method
+    // simple Drawable that only support draw method, no setBounds
     private var gd = new GradientDrawable(
         GradientDrawable.Orientation.TOP_BOTTOM,
         Array(0xFFE6DADA, 0xFF274046))  // named "Metal", for default
     private var _degree = 30f
+    private var cache: Bitmap = null
 
     import GradientArtDrawable.Filter._
     var filter = NO_FILTER
 
     def degree = _degree
-    def degree_=(deg: Float) =
-        if (0 <= deg && deg <= 90)
-            _degree = deg
-        else
+    def degree_=(deg: Float) = {
+        if (!(0 <= deg && deg <= 90))
             throw new Exception("Invalid degree")
+        _degree = deg
+        emptyCache()
+    }
 
-    def draw(canvas: Canvas) = {
-        canvas.save()
-        filter match {
-            case NO_FILTER => drawRotateGra(canvas)
-            case TAQUIN =>
-                val bmp = Bitmap.createBitmap(canvas.getWidth,
-                    canvas.getHeight, Bitmap.Config.ARGB_8888)
-                val mid = new Canvas(bmp)
-                drawRotateGra(mid)
-                taquin(bmp, canvas)
+    def draw(canvas: Canvas) =
+        if (cache != null && cache.getWidth == canvas.getWidth &&
+                cache.getHeight == canvas.getHeight) {
+            drawCache(canvas)
+        } else {
+            cache = Bitmap.createBitmap(canvas.getWidth,
+                canvas.getHeight, Bitmap.Config.ARGB_8888)
+            canvas.save()
+            filter match {
+                case NO_FILTER =>
+                    drawRotateGra(new Canvas(cache))
+                case TAQUIN =>
+                    val temp = Bitmap.createBitmap(canvas.getWidth,
+                        canvas.getHeight, Bitmap.Config.ARGB_8888)
+                    drawRotateGra(new Canvas(temp))
+                    taquin(temp, new Canvas(cache))
+                    // temp will not be gc before it be created again without the two calls
+                    temp.recycle()
+                    System.gc()
+            }
+            canvas.restore()
+            drawCache(canvas)
         }
-        canvas.restore()
+
+    def emptyCache() =
+        cache = null
+
+    private def drawCache(canvas: Canvas) {
+        val rect = new Rect(0, 0, cache.getWidth, cache.getHeight)
+        canvas.drawBitmap(cache, rect, rect, null)
     }
 
     private def drawRotateGra(canvas: Canvas) {
@@ -107,12 +127,16 @@ class GradientArtDrawable {
         // eg. convert "#FFCCFF" to 0xFFFFCCFF (argb)
         Integer.parseInt(s.drop(1), 16) + 0xFF000000
 
-    def setColor(color: String) = gd.setColor(colorStrToInt(color))
+    def setColor(color: String) = {
+        gd.setColor(colorStrToInt(color))
+        emptyCache()
+    }
 
     def setColors(colors: Array[String]) = {
         gd = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             colors.map(colorStrToInt))
+        emptyCache()
     }
 }
 
