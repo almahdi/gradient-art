@@ -118,17 +118,15 @@ class LiveWallpaper extends WallpaperService {
             Array(a, b, td).foreach(_.setBounds(0, 0, w, h))
             td.startTransition(aniDuration)
 
-            val startTime = SystemClock.uptimeMillis
+            val startTime = SystemClock.uptimeMillis + 20  // +20 for unavoidable delay
             new Runnable {
                 def run() {
-                    val holder = getSurfaceHolder
-                    val canvas = holder.lockCanvas()
-                    if (canvas != null) {
+                    if (SystemClock.uptimeMillis - startTime <= aniDuration) {
+                        handler.postDelayed(this, 20)  // 50FPS
+                        val holder = getSurfaceHolder
+                        val canvas = holder.lockCanvas()  // assume it's not null
                         td.draw(canvas)
                         holder.unlockCanvasAndPost(canvas)
-                    }
-                    if (SystemClock.uptimeMillis - startTime < aniDuration) {
-                        handler.postDelayed(this, 17)  // 60FPS
                     } else {
                         Array(before, after).foreach(_.recycle())
                         System.gc()
@@ -146,7 +144,7 @@ class LiveWallpaper extends WallpaperService {
             }
         }
 
-        // Select a color randomly and set gradientDrawable and TextViews
+        // Select a color randomly, set gradientDrawable and TextViews
         def fromSettings() {
             val idx = pref.getString("filter", "0").toInt
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
@@ -177,10 +175,10 @@ class LiveWallpaper extends WallpaperService {
             case "period" =>
                 handler.removeCallbacks(changeTask)
                 scheduleChangeTask()
-            case _ if isVisible =>
-                fromSettings()
-                doDrawing()
-            case _ => changeTaskNextRun = 1  // force animated redrawing after become visible
+            case _ =>
+                // assume wallpaper is invisible now
+                // force animated redrawing after become visible
+                changeTaskNextRun = 1
         }
     }
 
