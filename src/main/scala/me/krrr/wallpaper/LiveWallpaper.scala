@@ -4,7 +4,7 @@ import android.content.{SharedPreferences, Context}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.graphics.drawable.{BitmapDrawable, TransitionDrawable}
 import android.graphics.{Canvas, Bitmap, PixelFormat}
-import android.os.Handler
+import android.os.{SystemClock, Handler}
 import android.preference.PreferenceManager
 import android.service.wallpaper.WallpaperService
 import android.util.{Log, DisplayMetrics}
@@ -15,7 +15,6 @@ import org.json.{JSONArray, JSONException}
 import GradientArtDrawable.Filter
 
 import scala.util.Random
-import scala.language.reflectiveCalls
 
 
 class LiveWallpaper extends WallpaperService {
@@ -26,18 +25,10 @@ class LiveWallpaper extends WallpaperService {
     class GraEngine extends Engine with OnSharedPreferenceChangeListener {
         val aniDuration = 1000
         private val pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext)
-        private var hasDelayedChange = false
         private val changeTask = new Runnable {
-            def run() = {
-                if (isVisible)
-                    doDrawingAnimated()
-                else
-                    hasDelayedChange = true
-                schedule()
-            }
-
-            def schedule() = handler.postDelayed(this, pref.getString("period", "1800000").toInt)
+            def run() = { doDrawingAnimated(); scheduleChangeTask() }
         }
+        private var changeTaskNextRun = -1L
         private val (view, nameLabel, subLabel, gra) = {
             // inflate view and set text shadows
             val view = LayoutInflater.from(
@@ -62,13 +53,19 @@ class LiveWallpaper extends WallpaperService {
             try new JSONArray(json_s) catch { case e: JSONException => null }
         }
 
+        private def scheduleChangeTask(delay: Long = -1) {
+            val _delay = if (delay == -1) pref.getString("period", "1800000").toLong else delay
+            handler.postDelayed(changeTask, _delay)
+            changeTaskNextRun = System.currentTimeMillis() + _delay
+        }
+
         override def onSurfaceCreated(holder: SurfaceHolder) {
             holder.setFormat(PixelFormat.RGBA_8888)
             pref.registerOnSharedPreferenceChangeListener(this)
             // for some unknown reasons, onVisibilityChanged will be called three
-            // times initially: show, hide, show. This is a workaround.
+            // times initially: show, hide, show. So readSettings first, then
+            // first draw will be done in onSurfaceChanged
             fromSettings()
-            changeTask.schedule()
         }
 
         override def onSurfaceChanged(holder: SurfaceHolder, format: Int,
@@ -82,11 +79,23 @@ class LiveWallpaper extends WallpaperService {
             pref.unregisterOnSharedPreferenceChangeListener(this)
         }
 
-        override def onVisibilityChanged(visible: Boolean) {
-            if (visible && hasDelayedChange) {
-                doDrawingAnimated()
-                hasDelayedChange = false
-            }
+        override def onVisibilityChanged(visible: Boolean) = visible match {
+            case true =>
+                if (changeTaskNextRun > 0) {
+                    val diff = changeTaskNextRun - System.currentTimeMillis
+                    if (diff >= 0) {
+                        scheduleChangeTask(diff)
+                    } else {
+                        val period = pref.getString("period", "1800000").toLong
+                        val nextAniDelay = period - System.currentTimeMillis % period
+                        if (nextAniDelay < aniDuration) doDrawing()  // avoid two animations overlap
+                        else doDrawingAnimated()
+                        scheduleChangeTask(nextAniDelay)
+                    }
+                } else
+                    scheduleChangeTask()
+            case false =>
+                handler.removeCallbacks(changeTask)
         }
 
         private def layoutView(w: Int, h: Int) {
@@ -109,7 +118,8 @@ class LiveWallpaper extends WallpaperService {
             Array(a, b, td).foreach(_.setBounds(0, 0, w, h))
             td.startTransition(aniDuration)
 
-            val job = new Runnable {
+            val startTime = SystemClock.uptimeMillis
+            new Runnable {
                 def run() {
                     val holder = getSurfaceHolder
                     val canvas = holder.lockCanvas()
@@ -117,22 +127,16 @@ class LiveWallpaper extends WallpaperService {
                         td.draw(canvas)
                         holder.unlockCanvasAndPost(canvas)
                     }
-                    handler.postDelayed(this, 17)  // 60FPS
+                    if (SystemClock.uptimeMillis - startTime < aniDuration) {
+                        handler.postDelayed(this, 17)  // 60FPS
+                    } else {
+                        Array(before, after).foreach(_.recycle())
+                        System.gc()
+                    }
                 }
-            }
-            handler.postDelayed(new Runnable {
-                def run() { handler.removeCallbacks(job) }
-            }, aniDuration + 30)
-            handler.postDelayed(new Runnable {
-                def run() {
-                    Array(before, after).foreach(_.recycle())
-                    System.gc()
-                }
-            }, aniDuration + 50)
-            job.run()
+            }.run()
         }
 
-        // Only called after this engine created
         def doDrawing() {
             val holder = getSurfaceHolder
             val canvas = holder.lockCanvas()
@@ -143,7 +147,7 @@ class LiveWallpaper extends WallpaperService {
         }
 
         // Select a color randomly and set gradientDrawable and TextViews
-        def fromSettings() = {
+        def fromSettings() {
             val idx = pref.getString("filter", "0").toInt
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
 
@@ -169,8 +173,14 @@ class LiveWallpaper extends WallpaperService {
             layoutView(view.getWidth, view.getHeight)
         }
 
-        def onSharedPreferenceChanged(pref: SharedPreferences, key: String) {
-            hasDelayedChange = true
+        def onSharedPreferenceChanged(pref: SharedPreferences, key: String) = key match {
+            case "period" =>
+                handler.removeCallbacks(changeTask)
+                scheduleChangeTask()
+            case _ if isVisible =>
+                fromSettings()
+                doDrawing()
+            case _ => changeTaskNextRun = 1  // force animated redrawing after become visible
         }
     }
 
