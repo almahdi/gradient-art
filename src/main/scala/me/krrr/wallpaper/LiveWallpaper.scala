@@ -137,11 +137,9 @@ class LiveWallpaper extends WallpaperService {
 
         def doDrawing() {
             val holder = getSurfaceHolder
-            val canvas = holder.lockCanvas()
-            if (canvas != null) {
-                view.draw(canvas)
-                holder.unlockCanvasAndPost(canvas)
-            }
+            val canvas = holder.lockCanvas()  // assume it's not null
+            view.draw(canvas)
+            holder.unlockCanvasAndPost(canvas)
         }
 
         // Select a color randomly, set gradientDrawable and TextViews
