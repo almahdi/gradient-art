@@ -28,6 +28,7 @@ class LiveWallpaper extends WallpaperService {
         private val changeTask = new Runnable {
             def run() = { doDrawingAnimated(); scheduleChangeTask() }
         }
+        private var aniRunnable: Runnable = null
         private var changeTaskNextRun = -1L
         private val (view, nameLabel, subLabel, gra) = {
             // inflate view and set text shadows
@@ -98,6 +99,7 @@ class LiveWallpaper extends WallpaperService {
                     scheduleChangeTask()
             case false =>
                 handler.removeCallbacks(changeTask)
+                // if there is animation running now, let it go
         }
 
         private def layoutView(w: Int, h: Int) {
@@ -108,6 +110,10 @@ class LiveWallpaper extends WallpaperService {
 
         // no need to call fromSettings before call this
         def doDrawingAnimated() {
+            if (aniRunnable != null) {
+                Log.d("LWPService", "animation already running!")  // though not likely
+                handler.removeCallbacks(aniRunnable)
+            }
             val (w, h) = (view.getWidth, view.getHeight)
             val before = Bitmap.createBitmap( w,h, Bitmap.Config.ARGB_8888)
             val after = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -121,27 +127,32 @@ class LiveWallpaper extends WallpaperService {
             td.startTransition(aniDuration)
 
             val startTime = SystemClock.uptimeMillis + 20  // +20 for unavoidable delay
-            new Runnable {
+            aniRunnable = new Runnable {
                 def run() {
                     if (SystemClock.uptimeMillis - startTime <= aniDuration) {
-                        handler.postDelayed(this, 20)  // 50FPS
                         val holder = getSurfaceHolder
-                        val canvas = holder.lockCanvas()  // assume it's not null
+                        val canvas = holder.lockCanvas()
+                        if (canvas == null) return
+                        handler.postDelayed(this, 20)  // 50FPS
                         td.draw(canvas)
                         holder.unlockCanvasAndPost(canvas)
                     } else {
                         Array(before, after).foreach(_.recycle())
                         System.gc()
+                        aniRunnable = null
                     }
                 }
-            }.run()
+            }
+            aniRunnable.run()
         }
 
         def doDrawing() {
             val holder = getSurfaceHolder
-            val canvas = holder.lockCanvas()  // assume it's not null
-            view.draw(canvas)
-            holder.unlockCanvasAndPost(canvas)
+            val canvas = holder.lockCanvas()
+            if (canvas != null) {
+                view.draw(canvas)
+                holder.unlockCanvasAndPost(canvas)
+            }
         }
 
         // Select a color randomly, set gradientDrawable and TextViews
