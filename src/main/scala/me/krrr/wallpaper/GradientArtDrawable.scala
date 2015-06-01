@@ -18,28 +18,26 @@ class GradientArtDrawable {
     var filter = NO_FILTER
 
     def degree = _degree
-    def degree_=(deg: Float) = {
+    def degree_=(deg: Float) {
         if (!(0 <= deg && deg <= 90))
             throw new Exception("Invalid degree")
         _degree = deg
         emptyCache()
     }
 
-    def draw(canvas: Canvas) =
-        if (cache != null && cache.getWidth == canvas.getWidth &&
-                cache.getHeight == canvas.getHeight) {
+    def draw(canvas: Canvas) {
+        val (w, h) = (canvas.getWidth, canvas.getHeight)
+        if (cache != null && cache.getWidth == w && cache.getHeight == h) {
             drawCache(canvas)
         } else {
-            cache = Bitmap.createBitmap(canvas.getWidth,
-                canvas.getHeight, Bitmap.Config.ARGB_8888)
+            cache = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
             canvas.save()
             filter match {
                 case NO_FILTER =>
-                    drawRotateGra(new Canvas(cache))
+                    drawRotatedGra(new Canvas(cache))
                 case TAQUIN =>
-                    val temp = Bitmap.createBitmap(canvas.getWidth,
-                        canvas.getHeight, Bitmap.Config.ARGB_8888)
-                    drawRotateGra(new Canvas(temp))
+                    val temp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                    drawRotatedGra(new Canvas(temp))
                     taquin(temp, new Canvas(cache))
                     // temp will not be gc before it be created again without the two calls
                     temp.recycle()
@@ -48,6 +46,7 @@ class GradientArtDrawable {
             canvas.restore()
             drawCache(canvas)
         }
+    }
 
     def emptyCache() =
         cache = null
@@ -57,21 +56,26 @@ class GradientArtDrawable {
         canvas.drawBitmap(cache, rect, rect, null)
     }
 
-    private def drawRotateGra(canvas: Canvas) {
-        val (w, h) = (canvas.getWidth, canvas.getHeight)
-        val _deg = _degree / 180.0 * math.Pi
-        val (deg_sin, deg_cos) = (math.sin(_deg), math.cos(_deg))
-        val new_w = deg_sin * h + deg_cos * w
-        val new_h = deg_cos * h + deg_sin * w
-
-        canvas.translate((deg_sin * deg_sin * w).toFloat,
-                         -(deg_sin * deg_cos * w).toFloat)
-        canvas.rotate(_degree)
-        gd.setBounds(0, 0, new_w.toInt, new_h.toInt)
+    private def drawRotatedGra(canvas: Canvas) {
+        // this method change state of canvas
+        val (new_w, new_h) = rotateCanvas(canvas)
+        gd.setBounds(0, 0, new_w, new_h)
         gd.draw(canvas)
     }
 
-    private def taquin(src: Bitmap, dst: Canvas) = {
+    private def rotateCanvas(canvas: Canvas): (Int, Int) = {
+        // rotate canvas and return tuple of new width and width
+        val (w, h) = (canvas.getWidth, canvas.getHeight)
+        val _deg = _degree / 180.0 * math.Pi
+        val (deg_sin, deg_cos) = (math.sin(_deg), math.cos(_deg))
+
+        canvas.translate((deg_sin * deg_sin * w).toFloat,
+            -(deg_sin * deg_cos * w).toFloat)
+        canvas.rotate(_degree)
+        ((deg_sin * h + deg_cos * w).toInt, (deg_cos * h + deg_sin * w).toInt)
+    }
+
+    private def taquin(src: Bitmap, dst: Canvas) {
         val n = 7
         val (block_w, block_h) = (src.getWidth.toFloat / n, src.getHeight.toFloat / n)
         val paint = new Paint
@@ -127,12 +131,12 @@ class GradientArtDrawable {
         // eg. convert "#FFCCFF" to 0xFFFFCCFF (argb)
         Integer.parseInt(s.drop(1), 16) + 0xFF000000
 
-    def setColor(color: String) = {
+    def setColor(color: String) {
         gd.setColor(colorStrToInt(color))
         emptyCache()
     }
 
-    def setColors(colors: Array[String]) = {
+    def setColors(colors: Array[String]) {
         gd = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             colors.map(colorStrToInt))
