@@ -2,4 +2,4 @@
 <wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
            android:settingsActivity="me.krrr.wallpaper.Preference"
            android:description="@string/app_desc"
-           android:thumbnail="@drawable/android:star_big_on"/>
+           android:thumbnail="@mipmap/thumbnail"/>
