@@ -80,14 +80,16 @@ class LiveWallpaper extends WallpaperService {
         }
 
         override def onVisibilityChanged(visible: Boolean) = visible match {
+            // postDelayed will die in deep sleep. Here we record UTC time of every scheduled
+            // changeTask and restore the state after becoming visible again.
             case true =>
                 if (changeTaskNextRun > 0) {
                     val diff = changeTaskNextRun - System.currentTimeMillis
                     if (diff >= 0) {
                         scheduleChangeTask(diff)
-                    } else {
+                    } else {  // a change should have taken place while invisible, so do it now
                         val period = pref.getString("period", "1800000").toLong
-                        val nextAniDelay = period - System.currentTimeMillis % period
+                        val nextAniDelay = period - (-diff % period)
                         if (nextAniDelay < aniDuration) doDrawing()  // avoid two animations overlap
                         else doDrawingAnimated()
                         scheduleChangeTask(nextAniDelay)
