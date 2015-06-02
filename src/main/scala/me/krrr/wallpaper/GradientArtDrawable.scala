@@ -3,17 +3,17 @@ package me.krrr.wallpaper
 import android.graphics._
 import android.graphics.drawable.GradientDrawable
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 
 class GradientArtDrawable {
     // simple Drawable that only support draw method, no setBounds
-    private var gd = new GradientDrawable(
-        GradientDrawable.Orientation.TOP_BOTTOM,
-        Array(0xFFE6DADA, 0xFF274046))  // named "Metal", for default
+    private var colors = List(0xFFE6DADA, 0xFF274046)  // default color named "Metal"
     private var _degree = 30f
     private var cache: Bitmap = null
 
+    import GradientArtDrawable.GradientGen
     import GradientArtDrawable.Filter._
     var filter = NO_FILTER
 
@@ -26,6 +26,7 @@ class GradientArtDrawable {
     }
 
     def draw(canvas: Canvas) {
+        // for performance, some filter do not create a temp bitmap first
         val (w, h) = (canvas.getWidth, canvas.getHeight)
         if (cache != null && cache.getWidth == w && cache.getHeight == h) {
             drawCache(canvas)
@@ -42,6 +43,8 @@ class GradientArtDrawable {
                     // temp will not be gc before it be created again without the two calls
                     temp.recycle()
                     System.gc()
+                case BANDING =>
+                    drawBanding(new Canvas(cache))
             }
             canvas.restore()
             drawCache(canvas)
@@ -59,8 +62,23 @@ class GradientArtDrawable {
     private def drawRotatedGra(canvas: Canvas) {
         // this method change state of canvas
         val (new_w, new_h) = rotateCanvas(canvas)
+        val gd = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            colors.toArray)
         gd.setBounds(0, 0, new_w, new_h)
         gd.draw(canvas)
+    }
+
+    private def drawBanding(canvas: Canvas) {
+        val n = 7
+        val (w, h) = rotateCanvas(canvas)
+        val block_h = h.toFloat / n
+        val paint = new Paint
+        for ((y, c) <- (0F until h by block_h).iterator zip
+                GradientGen(colors(0), colors(1), n)) {
+            paint.setColor(c)
+            canvas.drawRect(0, y, w, y+block_h, paint)
+        }
     }
 
     private def rotateCanvas(canvas: Canvas): (Int, Int) = {
@@ -132,14 +150,13 @@ class GradientArtDrawable {
         Integer.parseInt(s.drop(1), 16) + 0xFF000000
 
     def setColor(color: String) {
-        gd.setColor(colorStrToInt(color))
+        val c = colorStrToInt(color)
+        this.colors = List(c, c)
         emptyCache()
     }
 
     def setColors(colors: Array[String]) {
-        gd = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            colors.map(colorStrToInt))
+        this.colors = colors.map(colorStrToInt).toList
         emptyCache()
     }
 }
@@ -147,6 +164,40 @@ class GradientArtDrawable {
 
 object GradientArtDrawable {
     object Filter extends Enumeration {
-        val NO_FILTER, TAQUIN = Value
+        val NO_FILTER, TAQUIN, BANDING = Value
+    }
+
+    /**
+     * Make a color gradient with banding effect, which has PART partitions.
+     */
+    class GradientGen(from: Int, to: Int, parts: Int) extends Iterator[Int] {
+        private val steps = Array(
+            (getA(to) - getA(from)).toFloat / parts,
+            (getR(to) - getR(from)).toFloat / parts,
+            (getG(to) - getG(from)).toFloat / parts,
+            (getB(to) - getB(from)).toFloat / parts)
+        private val argb = ArrayBuffer(getA(from).toFloat, getR(from).toFloat,
+            getG(from).toFloat, getB(from).toFloat)
+        private var i = 0
+
+        def hasNext = i < parts
+
+        def next() = {
+            i += 1
+            for (k <- 0 to 3)
+                argb(k) += steps(k)
+            toARGB(argb(0).toInt, argb(1).toInt, argb(2).toInt, argb(3).toInt)
+        }
+
+        def getA(argb: Int) = (0xFF000000 & argb) >>> 24
+        def getR(argb: Int) = (0x00FF0000 & argb) >>> 16
+        def getG(argb: Int) = (0x0000FF00 & argb) >>> 8
+        def getB(argb: Int) = 0x000000FF & argb
+        def toARGB(a: Int, r: Int, g: Int, b: Int) =
+            (a << 24) + (r << 16) + (g << 8) + b
+    }
+
+    object GradientGen {
+        def apply(a: Int, b: Int, c: Int) = new GradientGen(a, b, c)
     }
 }
