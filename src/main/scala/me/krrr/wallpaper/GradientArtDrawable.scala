@@ -97,7 +97,7 @@ class GradientArtDrawable {
         val n = 7
         val (block_w, block_h) = (src.getWidth.toFloat / n, src.getHeight.toFloat / n)
         val paint = new Paint
-        val (src_rect, dst_rect) = (new Rect, new Rect)
+        val (src_rect, dst_rect) = (new Rect, new RectF)
         val border_rect = new Rect(0, 0, block_w.toInt, block_h.toInt)
         val border_w = Array(block_w, block_h).min * 0.04f
 
@@ -138,7 +138,7 @@ class GradientArtDrawable {
             val (src_x, src_y) = ((src_i % n) * block_w, src_i / n * block_h)
             val (dst_x, dst_y) = ((dst_i % n) * block_w, dst_i / n * block_h)
             src_rect.set(src_x.toInt, src_y.toInt, (src_x+block_w).toInt, (src_y+block_h).toInt)
-            dst_rect.set(dst_x.toInt, dst_y.toInt, (dst_x+block_w).toInt, (dst_y+block_h).toInt)
+            dst_rect.set(dst_x, dst_y, dst_x+block_w, dst_y+block_h)
             dst.drawBitmap(src, src_rect, dst_rect, paint)
             // draw border
             dst.drawBitmap(border_bmp, border_rect, dst_rect, paint)
