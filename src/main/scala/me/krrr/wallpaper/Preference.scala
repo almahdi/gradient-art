@@ -3,6 +3,7 @@ package me.krrr.wallpaper
 import android.os.Bundle
 import android.preference.PreferenceActivity
 
+//noinspection ScalaDeprecation, must be deprecated to support old device
 class Preference extends PreferenceActivity {
 
     override def onCreate(saved: Bundle) {
