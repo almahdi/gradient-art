@@ -35,10 +35,10 @@
     <item>86400000</item>
   </string-array>
 
-  <string-array name="pattern_set_names">
+  <string-array name="scheme_set_names">
     <item>uiGradient</item>
   </string-array>
-  <string-array name="pattern_set_values">
+  <string-array name="scheme_set_values">
     <item>0</item>
   </string-array>
 </resources>

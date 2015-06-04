@@ -48,7 +48,7 @@ class LiveWallpaper extends WallpaperService {
 
             (view, nameLabel, subLabel, gra)
         }
-        val patterns = {
+        val schemes = {
             val i_stream = getResources.openRawResource(R.raw.uigradients)
             val json_s = io.Source.fromInputStream(i_stream).mkString
             try new JSONArray(json_s) catch { case e: JSONException => null }
@@ -161,7 +161,7 @@ class LiveWallpaper extends WallpaperService {
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
 
             try {
-                val entry = patterns.getJSONObject(Random.nextInt(patterns.length))
+                val entry = schemes.getJSONObject(Random.nextInt(schemes.length))
                 if (entry.has("color"))
                     gra.setColor(entry.getString("color"))
                 else

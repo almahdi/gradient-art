@@ -6,10 +6,10 @@
 
   <me.krrr.androidhelper.ListPreferenceCompat
           android:key="pattern_set"
-          android:title="@string/pref_pattern_set"
+          android:title="@string/pref_scheme_set"
           android:summary="%s"
-          android:entries="@array/pattern_set_names"
-          android:entryValues="@array/pattern_set_values"
+          android:entries="@array/scheme_set_names"
+          android:entryValues="@array/scheme_set_values"
           android:defaultValue="0"/>
   <me.krrr.androidhelper.ListPreferenceCompat
           android:key="filter"
