@@ -48,11 +48,7 @@ class LiveWallpaper extends WallpaperService {
 
             (view, nameLabel, subLabel, gra)
         }
-        val schemes = {
-            val i_stream = getResources.openRawResource(R.raw.uigradients)
-            val json_s = io.Source.fromInputStream(i_stream).mkString
-            try new JSONArray(json_s) catch { case e: JSONException => null }
-        }
+        private var (schemes, schemes_id): (JSONArray, Int) = (null, -1)
 
         private def scheduleChangeTask(delay: Long = -1) {
             val _delay = if (delay == -1) pref.getString("period", "1800000").toLong else delay
@@ -155,11 +151,20 @@ class LiveWallpaper extends WallpaperService {
             }
         }
 
-        // Select a color randomly, set gradientDrawable and TextViews
         def fromSettings() {
+            // load color scheme set
+            val ids = Map(0 -> R.raw.uigradients, 1 -> R.raw.animegame)
+            val new_id = pref.getString("scheme_set", "0").toInt
+            if (schemes_id == -1 || schemes_id != new_id) {
+                schemes_id = new_id
+                val i_stream = getResources.openRawResource(ids(new_id))
+                val json_s = io.Source.fromInputStream(i_stream).mkString
+                schemes = try new JSONArray(json_s) catch { case e: JSONException => null }
+            }
+
+            // set color and filter randomly, set gradientDrawable and TextViews
             val idx = pref.getString("filter", "0").toInt
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
-
             try {
                 val entry = schemes.getJSONObject(Random.nextInt(schemes.length))
                 if (entry.has("color"))

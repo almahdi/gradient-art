@@ -5,7 +5,7 @@
                   android:layout_height="match_parent">
 
   <me.krrr.androidhelper.ListPreferenceCompat
-          android:key="pattern_set"
+          android:key="scheme_set"
           android:title="@string/pref_scheme_set"
           android:summary="%s"
           android:entries="@array/scheme_set_names"
