@@ -71,13 +71,14 @@ class GradientArtDrawable {
     }
 
     private def drawBanding(canvas: Canvas) {
-        val n = 7
+        val n = 7  // the number of bands
         val (w, h) = rotateCanvas(canvas)
         val block_h = h.toFloat / n
         val paint = new Paint
-        for ((y, c) <- (0F until h by block_h).iterator zip
+        for ((i, c) <- (0 until n).iterator zip
                 GradientGen(colors(0), colors(1), n)) {
             paint.setColor(c)
+            val y =  block_h * i
             canvas.drawRect(0, y, w, y+block_h, paint)
         }
     }
