@@ -5,6 +5,7 @@ import android.graphics.drawable.GradientDrawable
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
+import math.round
 
 
 class GradientArtDrawable {
@@ -90,19 +91,20 @@ class GradientArtDrawable {
         canvas.translate((deg_sin * deg_sin * w).toFloat,
             -(deg_sin * deg_cos * w).toFloat)
         canvas.rotate(_degree)
-        ((deg_sin * h + deg_cos * w).toInt, (deg_cos * h + deg_sin * w).toInt)
+        (round(deg_sin * h + deg_cos * w).toInt, round(deg_cos * h + deg_sin * w).toInt)
     }
 
     private def taquin(src: Bitmap, dst: Canvas) {
         val n = 7
         val (block_w, block_h) = (src.getWidth.toFloat / n, src.getHeight.toFloat / n)
         val paint = new Paint
-        val (src_rect, dst_rect) = (new Rect, new RectF)
-        val border_rect = new Rect(0, 0, block_w.toInt, block_h.toInt)
-        val border_w = Array(block_w, block_h).min * 0.04f
+        // do not use RectF for dest rect, it differs on Android 2.3 and 4.3
+        val (src_rect, dst_rect) = (new Rect, new Rect)
+        val border_rect = new Rect(0, 0, round(block_w), round(block_h))
+        val border_w = Array(block_w, block_h).min * 0.032f
 
         val border_bmp = {
-            val bmp = Bitmap.createBitmap(block_w.toInt, block_h.toInt,
+            val bmp = Bitmap.createBitmap(round(block_w), round(block_h),
                 Bitmap.Config.ARGB_8888)
             val c = new Canvas(bmp)
             // use path to draw parallelogram, light part first.
@@ -137,8 +139,8 @@ class GradientArtDrawable {
             val src_i = Random.nextInt(n * n)  // random from [0, n**2]
             val (src_x, src_y) = ((src_i % n) * block_w, src_i / n * block_h)
             val (dst_x, dst_y) = ((dst_i % n) * block_w, dst_i / n * block_h)
-            src_rect.set(src_x.toInt, src_y.toInt, (src_x+block_w).toInt, (src_y+block_h).toInt)
-            dst_rect.set(dst_x, dst_y, dst_x+block_w, dst_y+block_h)
+            src_rect.set(round(src_x), round(src_y), round(src_x+block_w), round(src_y+block_h))
+            dst_rect.set(round(dst_x), round(dst_y), round(dst_x+block_w), round(dst_y+block_h))
             dst.drawBitmap(src, src_rect, dst_rect, paint)
             // draw border
             dst.drawBitmap(border_bmp, border_rect, dst_rect, paint)
