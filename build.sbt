@@ -23,7 +23,4 @@ libraryDependencies ++= Seq()
 
 proguardScala in Android := true
 
-proguardOptions in Android ++= Seq(
-  "-ignorewarnings",
-  "-keep class scala.Dynamic"
-)
+proguardOptions in Android ++= io.Source.fromFile("proguard-sbt.txt").getLines().toSeq
