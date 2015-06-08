@@ -4,7 +4,7 @@ Every gradient has its name, and it will be shown with the gradient.
 Timed switching of color and filter is supported.
 
 ### Sets of color schemes
-* [uiGradient](http://uigradients.com)
+* [uiGradients](http://uigradients.com)
 
 ### Filters
 * Taquin (from G'MIC)
