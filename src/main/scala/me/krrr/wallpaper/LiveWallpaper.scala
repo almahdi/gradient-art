@@ -11,6 +11,7 @@ import android.util.{Log, DisplayMetrics}
 import android.view.View.MeasureSpec
 import android.view.{WindowManager, LayoutInflater, SurfaceHolder}
 import android.widget.TextView
+import me.krrr.androidhelper.Conversions.funcAsRunnable
 import org.json.{JSONArray, JSONException}
 import GradientArtDrawable.Filter
 
@@ -123,22 +124,19 @@ class LiveWallpaper extends WallpaperService {
             td.startTransition(aniDuration)
 
             val startTime = SystemClock.uptimeMillis + 20  // +20 for unavoidable delay
-            aniRunnable = new Runnable {
-                def run() {
-                    if (SystemClock.uptimeMillis - startTime <= aniDuration) {
-                        val holder = getSurfaceHolder
-                        val canvas = holder.lockCanvas()
-                        if (canvas == null) return
-                        handler.postDelayed(this, 20)  // 50FPS
-                        td.draw(canvas)
-                        holder.unlockCanvasAndPost(canvas)
-                    } else {
-                        Array(before, after).foreach(_.recycle())
-                        System.gc()
-                        aniRunnable = null
-                    }
+            aniRunnable = () =>
+                if (SystemClock.uptimeMillis - startTime <= aniDuration) {
+                    val holder = getSurfaceHolder
+                    val canvas = holder.lockCanvas()
+                    if (canvas == null) return
+                    handler.postDelayed(aniRunnable, 20)  // 50FPS
+                    td.draw(canvas)
+                    holder.unlockCanvasAndPost(canvas)
+                } else {
+                    Array(before, after).foreach(_.recycle())
+                    System.gc()
+                    aniRunnable = null
                 }
-            }
             aniRunnable.run()
         }
 
