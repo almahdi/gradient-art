@@ -3,7 +3,6 @@ package me.krrr.wallpaper
 import android.graphics._
 import android.graphics.drawable.GradientDrawable
 
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 import math.round
 
@@ -171,33 +170,30 @@ object GradientArtDrawable {
     }
 
     /**
-     * Make a color gradient with banding effect, which has PART partitions.
+     * Make a color gradient with banding effect, which has PARTS partitions.
      */
     class GradientGen(from: Int, to: Int, parts: Int) extends Iterator[Int] {
-        private val steps = Array(
-            (getA(to) - getA(from)).toFloat / parts,
-            (getR(to) - getR(from)).toFloat / parts,
-            (getG(to) - getG(from)).toFloat / parts,
-            (getB(to) - getB(from)).toFloat / parts)
-        private val argb = ArrayBuffer(getA(from).toFloat, getR(from).toFloat,
-            getG(from).toFloat, getB(from).toFloat)
+        private val steps = for (f <- List(getA _, getR _, getG _, getB _))
+            yield (f(to) - f(from)).toFloat / parts
+        private var argbList = for (f <- List(getA _, getR _, getG _, getB _))
+            yield f(from).toFloat
         private var i = 0
 
         def hasNext = i < parts
 
-        def next() = {
+        def next(): Int = {
             i += 1
-            for (k <- 0 to 3)
-                argb(k) += steps(k)
-            toARGB(argb(0).toInt, argb(1).toInt, argb(2).toInt, argb(3).toInt)
+            val argb = toARGB(argbList)
+            argbList = for ((c, s) <- argbList zip steps) yield c + s
+            argb
         }
 
-        def getA(argb: Int) = (0xFF000000 & argb) >>> 24
-        def getR(argb: Int) = (0x00FF0000 & argb) >>> 16
-        def getG(argb: Int) = (0x0000FF00 & argb) >>> 8
-        def getB(argb: Int) = 0x000000FF & argb
-        def toARGB(a: Int, r: Int, g: Int, b: Int) =
-            (a << 24) + (r << 16) + (g << 8) + b
+        private def getA(argb: Int) = argb >>> 24
+        private def getR(argb: Int) = (0x00FF0000 & argb) >>> 16
+        private def getG(argb: Int) = (0x0000FF00 & argb) >>> 8
+        private def getB(argb: Int) = 0x000000FF & argb
+        private def toARGB(l: Seq[Float]) =
+            (l(0).toInt << 24) + (l(1).toInt << 16) + (l(2).toInt << 8) + l(3).toInt
     }
 
     object GradientGen {
