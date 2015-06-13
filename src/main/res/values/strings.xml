@@ -8,5 +8,5 @@
   <string name="pref_filter">Filter</string>
   <string name="pref_period">Period to keep</string>
   <string name="pref_period_sum">Keep the color for %s before random change</string>
-  <string name="pref_show_name">Show pattern\'s name</string>
+  <string name="pref_show_name">Show scheme\'s name</string>
 </resources>
