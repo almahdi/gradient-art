@@ -26,9 +26,7 @@ class LiveWallpaper extends WallpaperService {
     class GraEngine extends Engine with OnSharedPreferenceChangeListener {
         val aniDuration = 1000
         private val pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext)
-        private val changeTask = new Runnable {
-            def run() = { doDrawingAnimated(); scheduleChangeTask() }
-        }
+        private val changeTask: Runnable = () => { doDrawingAnimated(); scheduleChangeTask() }
         private var aniRunnable: Runnable = null
         private var changeTaskNextRun = -1L
         private val (view, nameLabel, subLabel, gra) = {

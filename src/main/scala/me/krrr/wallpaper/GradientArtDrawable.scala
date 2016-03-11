@@ -9,7 +9,7 @@ import math.round
 
 class GradientArtDrawable {
     // simple Drawable that only support draw method, no setBounds
-    private var colors = List(0xFFE6DADA, 0xFF274046)  // default color named "Metal"
+    private var colors = Array(0xFFE6DADA, 0xFF274046)  // default color named "Metal"
     private var _degree = 30f
     private var cache: Bitmap = null
 
@@ -62,9 +62,7 @@ class GradientArtDrawable {
     private def drawRotatedGra(canvas: Canvas) {
         // this method change state of canvas
         val (new_w, new_h) = rotateCanvas(canvas)
-        val gd = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            colors.toArray)
+        val gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors)
         gd.setBounds(0, 0, new_w, new_h)
         gd.draw(canvas)
     }
@@ -74,8 +72,7 @@ class GradientArtDrawable {
         val (w, h) = rotateCanvas(canvas)
         val block_h = h.toFloat / n
         val paint = new Paint
-        for ((i, c) <- (0 until n).iterator zip
-                GradientGen(colors(0), colors(1), n)) {
+        for ((i, c) <- (0 until n).iterator zip GradientGen(colors(0), colors(1), n)) {
             paint.setColor(c)
             val y =  block_h * i
             canvas.drawRect(0, y, w, y+block_h, paint)
@@ -153,12 +150,12 @@ class GradientArtDrawable {
 
     def setColor(color: String) {
         val c = colorStrToInt(color)
-        this.colors = List(c, c)
+        this.colors = Array(c, c)
         emptyCache()
     }
 
     def setColors(colors: Array[String]) {
-        this.colors = colors.map(colorStrToInt).toList
+        this.colors = colors.map(colorStrToInt)
         emptyCache()
     }
 }
