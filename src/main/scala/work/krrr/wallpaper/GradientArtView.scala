@@ -1,4 +1,4 @@
-package me.krrr.wallpaper
+package work.krrr.wallpaper
 
 import android.content.Context
 import android.graphics.Canvas

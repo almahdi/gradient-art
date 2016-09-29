@@ -5,7 +5,7 @@
               android:layout_height="match_parent"
               >
 
-  <me.krrr.wallpaper.GradientArtView
+  <work.krrr.wallpaper.GradientArtView
           android:layout_width="wrap_content"
           android:layout_height="match_parent"
           android:id="@+id/gra_view"

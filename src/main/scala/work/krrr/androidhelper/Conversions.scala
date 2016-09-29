@@ -1,4 +1,4 @@
-package me.krrr.androidhelper
+package work.krrr.androidhelper
 
 import scala.language.implicitConversions
 

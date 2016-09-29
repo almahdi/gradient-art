@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
-           android:settingsActivity="me.krrr.wallpaper.Preference"
+           android:settingsActivity="work.krrr.wallpaper.Preference"
            android:description="@string/app_desc"
            android:thumbnail="@mipmap/thumbnail"/>

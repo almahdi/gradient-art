@@ -1,4 +1,4 @@
-package me.krrr.wallpaper
+package work.krrr.wallpaper
 
 import android.os.Bundle
 import android.preference.PreferenceActivity

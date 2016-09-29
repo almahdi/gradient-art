@@ -1,4 +1,4 @@
-package me.krrr.wallpaper
+package work.krrr.wallpaper
 
 import android.content.{SharedPreferences, Context}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
