@@ -1,21 +1,22 @@
 package work.krrr.wallpaper
 
-import android.content.{SharedPreferences, Context}
+import scala.util.Random
+import work.krrr.androidhelper.Conversions.funcAsRunnable
+import GradientArtDrawable.Filter
+import org.json.{JSONArray, JSONException}
+import android.content.{Context, SharedPreferences}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.graphics.drawable.{BitmapDrawable, TransitionDrawable}
-import android.graphics.{Canvas, Bitmap, PixelFormat}
-import android.os.{SystemClock, Handler}
+import android.graphics.{Bitmap, Canvas, PixelFormat}
+import android.os.{Handler, SystemClock}
 import android.preference.PreferenceManager
 import android.service.wallpaper.WallpaperService
-import android.util.{Log, DisplayMetrics}
+import android.util.{DisplayMetrics, Log}
 import android.view.View.MeasureSpec
-import android.view.{WindowManager, LayoutInflater, SurfaceHolder}
-import android.widget.TextView
-import me.krrr.androidhelper.Conversions.funcAsRunnable
-import org.json.{JSONArray, JSONException}
-import GradientArtDrawable.Filter
+import android.view.{LayoutInflater, SurfaceHolder, ViewGroup, WindowManager}
+import android.widget.{RelativeLayout, TextView}
+import android.widget.RelativeLayout.LayoutParams
 
-import scala.util.Random
 
 
 class LiveWallpaper extends WallpaperService {
@@ -47,7 +48,9 @@ class LiveWallpaper extends WallpaperService {
 
             (view, nameLabel, subLabel, gra)
         }
-        private var (schemes, schemes_id): (JSONArray, Int) = (null, -1)
+        private var schemeSets: JSONArray = null
+        private var schemeSetId = -1
+        private val schemeSetMap = Array(R.raw.uigradients, R.raw.animegame)
 
         private def scheduleChangeTask(delay: Long = -1) {
             val _delay = if (delay == -1) pref.getString("period", "1800000").toLong else delay
@@ -94,16 +97,30 @@ class LiveWallpaper extends WallpaperService {
                     scheduleChangeTask()
             case false =>
                 handler.removeCallbacks(changeTask)
-                // if there is animation running now, let it go
+                // if there is animation running then let it go
         }
 
         private def layoutView(w: Int, h: Int) {
+            setNameLabelsPos(h)
             view.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
             view.layout(0, 0, w, h)
         }
 
-        // no need to call fromSettings before call this
+        private def setNameLabelsPos(height: Int) {
+            var params = new LayoutParams(nameLabel.getLayoutParams)
+            var namePos = pref.getString("name_pos", "50").toInt
+
+            nameLabel.measure(MeasureSpec.makeMeasureSpec(1, MeasureSpec.UNSPECIFIED),
+                MeasureSpec.makeMeasureSpec(ViewGroup.LayoutParams.WRAP_CONTENT, MeasureSpec.UNSPECIFIED))
+            var marginTop = (height/100F*namePos - nameLabel.getMeasuredHeight/2F).toInt
+
+            params.setMargins(0, marginTop, 0, 0)  // horizontal margin reset
+            params.addRule(RelativeLayout.CENTER_HORIZONTAL)
+            nameLabel.setLayoutParams(params)
+        }
+
+        // no need to call fromSettings before calling this
         def doDrawingAnimated() {
             if (aniRunnable != null) {
                 Log.d("LWPService", "animation already running!")  // though not likely
@@ -149,27 +166,27 @@ class LiveWallpaper extends WallpaperService {
 
         def fromSettings() {
             // load color scheme set
-            val ids = Map(0 -> R.raw.uigradients, 1 -> R.raw.animegame)
-            val new_id = pref.getString("scheme_set", "0").toInt
-            if (schemes_id == -1 || schemes_id != new_id) {
-                schemes_id = new_id
-                val i_stream = getResources.openRawResource(ids(new_id))
+            val newId = pref.getString("scheme_set", "0").toInt
+            if (schemeSetId == -1 || schemeSetId != newId) {
+                schemeSetId = newId
+                val i_stream = getResources.openRawResource(schemeSetMap(newId))
                 val json_s = io.Source.fromInputStream(i_stream).mkString
-                schemes = try new JSONArray(json_s) catch { case e: JSONException => null }
+                schemeSets = try new JSONArray(json_s) catch { case e: JSONException => null }
             }
 
             // set color and filter randomly, set gradientDrawable and TextViews
             val idx = pref.getString("filter", "0").toInt
             gra.filter = Filter(if (idx == -1) Random.nextInt(Filter.maxId) else idx)
             try {
-                val entry = schemes.getJSONObject(Random.nextInt(schemes.length))
+                val entry = schemeSets.getJSONObject(Random.nextInt(schemeSets.length))
                 if (entry.has("color"))
                     gra.setColor(entry.getString("color"))
                 else
                     gra.setColors(Array("color1", "color2").map(entry.getString))
 
-                var (name, subName) = ("", "")
-                if (pref.getBoolean("show_name", true)) {
+                var name, subName = ""
+                var namePos = pref.getString("name_pos", "50").toInt
+                if (namePos != -1) {
                     name = entry.getString("name")
                     subName = if (entry.has("sub_name")) entry.getString("sub_name") else ""
                 }
@@ -179,6 +196,7 @@ class LiveWallpaper extends WallpaperService {
                 case e@(_: JSONException | _: NullPointerException) =>
                     nameLabel.setText("Failed to parse JSON")
                     subLabel.setText(e.toString)
+                    Log.e("LWPService", "JSON error: " + e)
             }
             layoutView(view.getWidth, view.getHeight)
         }

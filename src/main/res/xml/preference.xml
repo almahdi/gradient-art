@@ -25,8 +25,11 @@
           android:entries="@array/period_names"
           android:entryValues="@array/period_values"
           android:defaultValue="1800000"/>
-  <CheckBoxPreference
-          android:key="show_name"
-          android:title="@string/pref_show_name"
-          android:defaultValue="true"/>
+  <work.krrr.androidhelper.ListPreferenceCompat
+          android:key="name_pos"
+          android:title="@string/pref_name_pos"
+          android:summary="@string/pref_name_sum"
+          android:entries="@array/name_pos_names"
+          android:entryValues="@array/name_pos_values"
+          android:defaultValue="50"/>
 </PreferenceScreen>

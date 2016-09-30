@@ -43,4 +43,18 @@
     <item>43200000</item>
     <item>86400000</item>
   </string-array>
+
+  <string-array name="name_pos_names">
+    <item>Don\'t display</item>
+    <item>Top</item>
+    <item>Center</item>
+    <item>Bottom</item>
+  </string-array>
+  <string-array name="name_pos_values">
+    <!-- percent of screen height -->
+    <item>-1</item>
+    <item>25</item>
+    <item>50</item>
+    <item>75</item>
+  </string-array>
 </resources>
